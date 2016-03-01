@@ -1,0 +1,70 @@
+---
+title: "Practical Machine Learning Assignment1"
+output: html_document
+---
+
+
+First of all, load the libraries needed
+```{r}
+library(caret)
+library(rpart)
+library(randomForest)
+```
+
+## Prepossing data
+
+```{r}
+##### Load the data sets and replace the missing values with "NA"
+train <- read.csv("pml-training.csv",na.strings = c("NA","","#DIV/0!"))
+test <- read.csv("pml-testing.csv",na.strings = c("NA","","#DIV/0!"))
+```
+
+Because the training set is in large size, and both training and testing sets have more than 100 variables, I'd better delete some with a lot of NAs
+```{r}
+##### Delete the columns filled with NAs
+train <- train[,colSums(is.na(train)) == 0]
+test <- test[,colSums(is.na(test)) == 0]
+```
+Because the "X","username" and following columns contribute little to modeling, it is necessary to delete them, too.
+```{r}
+##### Delete the columns with useless variables
+train<-train[,-c(1:7)]
+test<-test[,-c(1:7)]
+```
+Although testing sets are given, it is still essential to separate testing data from training data, in order to determine the model
+```{r}
+##### Separte Training Data to allow Cross Validation
+inTrain <- createDataPartition(y = train$classe, p = 0.75, list = FALSE)
+subtraining <- train[inTrain, ]  
+testtraining <- train[-inTrain, ]  
+```
+After data-washing, take a look at their dimensions
+```{r}
+##### Get the dimensions of datasets
+dim(subtraining)   # 14718 obs. of 53 variables
+dim(testtraining)  # 4904 obs. of 53 variables
+```
+## Model building
+First, employ "rpart" method
+```{r}
+##### Create a CART model
+modFit1<-train(classe~.,data=subtraining,method="rpart")
+print(modFit1)
+prediction1<-predict(modFit1,testtraining)
+confusionMatrix(prediction1, testtraining$classe)
+```
+It is obvious from the result that the accuracy is low, therefore I try the randomforest model
+```{r}
+##### Create a randomforest model
+modFit2<-train(classe~.,data=subtraining,method="rf",trControl=trainControl(number = 4))
+print(modFit2)
+prediction2<-predict(modFit2,testtraining)
+confusionMatrix(prediction2, testtraining$classe)
+```
+It takes a long time to fit the randomforest model, but its accuracy is high. Weighing pros and cons, I decide to choose the randomforest method.
+## Predict 20 different test cases
+```{r}
+##### Cross Validation
+prediction3<-predict(modFit2,test)
+prediction3
+```
