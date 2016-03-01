@@ -1,0 +1,68 @@
+---
+title: "Which is better for MPG - automatic or manual"
+output: pdf_document
+---
+
+## Executive Summary
+While there are many factors contributing to a car's miles per gallon(MPG) indicator, such as weight, horse power, and the number of cylinders. Today we will focus mainly on the transmission type - automatic and manual. Based on the linear regression model, it can be concluded that the manual cars run 7.24 more miles per gallon than automatic on average. Therefore,  the transmisiion is better for MPG than the automatic one.
+
+## Data Prepossessing 
+The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models).
+```{r}
+data(mtcars)
+View(mtcars)
+mtcars$cyl<-factor(mtcars$cyl)
+mtcars$vs<-factor(mtcars$vs)
+mtcars$gear<-factor(mtcars$gear)
+mtcars$carb<-factor(mtcars$carb)
+mtcars$am<-factor(mtcars$am,labels=c("automatic","manual"))
+```
+Below is abbreviations for the variables:
+[1]	mpg:	Miles/(US) gallon;
+[2]	cyl:	Number of cylinders;
+[3]	disp:	Displacement (cu.in.);
+[4]	hp:	Gross horsepower;
+[5]	drat:	Rear axle ratio;
+[6]	wt:	Weight (lb/1000);
+[7]	qsec:	1/4 mile time;
+[8]	vs:	V/S;
+[9]	am:	Transmission (0 = automatic, 1 = manual);
+[10]	gear:	Number of forward gears;
+[11] carb:	Number of carburetors;
+
+## Compare means of transmission types
+```{r}
+t.test(mtcars$mpg~mtcars$am)
+```
+A p-value less than 0.01 proves that there exists a difference on MPG between automatic and manual transmission. It could be easily told that the advantage of automatic cars is 7.24 MPG.
+
+## Model Building
+```{r}
+model1<-lm(mpg~.,data=mtcars)
+model2<-step(model1,derection="backward",k=2,trace=0)
+```
+At first we construct a variables-all-included model, then we use step() to eliminate variables that are not significant.
+```{r}
+summary(model2)
+```
+The probability of coefficients suggest that cylinders, horsepower, weight are significant variables(smaller than 0.05). and R square for the selected model is 0.84.
+
+## Residual Analysis
+Residuals plots can be viewed in Appendix.
+It is suggested that residuals are scattered randomly.
+QQ plot illustrates that residuals are normally distributed.
+
+## Uncertainty
+The conclusion is reached based on a limited number of observations(32). If more samples are provided, the support will be more solid.
+
+## Appendix
+```{r}
+boxplot(mpg~am,data=mtcars,xlab="Transmission",ylab="MPG")
+```
+
+Boxplot of automatic and manual transmission cars
+```{r}
+plot(model2)
+```
+
+Residual plots of fitted model
